@@ -12,6 +12,7 @@
 #include "base/bind.h"
 #include "base/macros.h"
 #include "base/strings/strcat.h"
+#include "base/strings/stringprintf.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/task/post_task.h"
 #include "chrome/common/extensions/extension_metrics.h"
@@ -38,7 +39,7 @@ class ManagementSetEnabledFunctionInstallPromptDelegate
       content::WebContents* web_contents,
       content::BrowserContext* browser_context,
       const extensions::Extension* extension,
-      const base::Callback<void(bool)>& callback) {
+      base::OnceCallback<void(bool)> callback) {
     // TODO(sentialx): emit event
   }
   ~ManagementSetEnabledFunctionInstallPromptDelegate() override {}
@@ -109,10 +110,10 @@ ElectronManagementAPIDelegate::SetEnabledFunctionDelegate(
     content::WebContents* web_contents,
     content::BrowserContext* browser_context,
     const extensions::Extension* extension,
-    const base::Callback<void(bool)>& callback) const {
+    base::OnceCallback<void(bool)> callback) const {
   return std::unique_ptr<ManagementSetEnabledFunctionInstallPromptDelegate>(
       new ManagementSetEnabledFunctionInstallPromptDelegate(
-          web_contents, browser_context, extension, callback));
+          web_contents, browser_context, extension, std::move(callback)));
 }
 
 std::unique_ptr<extensions::UninstallDialogDelegate>
@@ -204,7 +205,7 @@ bool ElectronManagementAPIDelegate::UninstallExtension(
     content::BrowserContext* context,
     const std::string& transient_extension_id,
     extensions::UninstallReason reason,
-    base::string16* error) const {
+    std::u16string* error) const {
   // TODO(sentialx): we don't have ExtensionService
   // return extensions::ExtensionSystem::Get(context)
   //     ->extension_service()
@@ -231,4 +232,11 @@ GURL ElectronManagementAPIDelegate::GetIconURL(
                                    grayscale ? "?grayscale=true" : ""));
   CHECK(icon_url.is_valid());
   return icon_url;
+}
+
+GURL ElectronManagementAPIDelegate::GetEffectiveUpdateURL(
+    const extensions::Extension& extension,
+    content::BrowserContext* context) const {
+  // TODO(codebytere): we do not currently support ExtensionManagement.
+  return GURL::EmptyGURL();
 }

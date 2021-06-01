@@ -17,9 +17,11 @@
 #include "net/http/http_content_disposition.h"
 #include "shell/browser/api/electron_api_session.h"
 #include "shell/browser/api/electron_api_web_contents.h"
+#include "shell/browser/api/electron_api_web_frame_main.h"
 #include "shell/browser/electron_browser_context.h"
 #include "shell/browser/javascript_environment.h"
 #include "shell/common/gin_converters/callback_converter.h"
+#include "shell/common/gin_converters/frame_converter.h"
 #include "shell/common/gin_converters/gurl_converter.h"
 #include "shell/common/gin_converters/net_converter.h"
 #include "shell/common/gin_converters/std_converter.h"
@@ -156,12 +158,18 @@ void ToDictionary(gin::Dictionary* details, extensions::WebRequestInfo* info) {
                  HttpResponseHeadersToV8(info->response_headers.get()));
   }
 
-  auto* web_contents = content::WebContents::FromRenderFrameHost(
-      content::RenderFrameHost::FromID(info->render_process_id,
-                                       info->frame_id));
-  auto* api_web_contents = WebContents::From(web_contents);
-  if (api_web_contents)
-    details->Set("webContentsId", api_web_contents->ID());
+  auto* render_frame_host =
+      content::RenderFrameHost::FromID(info->render_process_id, info->frame_id);
+  if (render_frame_host) {
+    details->Set("frame", render_frame_host);
+    auto* web_contents =
+        content::WebContents::FromRenderFrameHost(render_frame_host);
+    auto* api_web_contents = WebContents::From(web_contents);
+    if (api_web_contents) {
+      details->Set("webContents", api_web_contents);
+      details->Set("webContentsId", api_web_contents->ID());
+    }
+  }
 }
 
 void ToDictionary(gin::Dictionary* details,
@@ -379,7 +387,7 @@ void WebRequest::SetListener(Event event,
   std::set<std::string> filter_patterns;
   gin::Dictionary dict(args->isolate());
   if (args->GetNext(&arg) && !arg->IsFunction()) {
-    // Note that gin treats Function as Dictionary when doing convertions, so we
+    // Note that gin treats Function as Dictionary when doing conversions, so we
     // have to explicitly check if the argument is Function before trying to
     // convert it to Dictionary.
     if (gin::ConvertFromV8(args->isolate(), arg, &dict)) {

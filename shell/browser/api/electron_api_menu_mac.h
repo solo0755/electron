@@ -8,7 +8,6 @@
 #include "shell/browser/api/electron_api_menu.h"
 
 #include <map>
-#include <string>
 
 #import "shell/browser/ui/cocoa/electron_menu_controller.h"
 
@@ -47,7 +46,7 @@ class MenuMac : public Menu {
   // window ID -> open context menu
   std::map<int32_t, scoped_nsobject<ElectronMenuController>> popup_controllers_;
 
-  base::WeakPtrFactory<MenuMac> weak_factory_;
+  base::WeakPtrFactory<MenuMac> weak_factory_{this};
 
   DISALLOW_COPY_AND_ASSIGN(MenuMac);
 };

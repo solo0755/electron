@@ -4,8 +4,6 @@
 
 #include "shell/browser/native_browser_view_views.h"
 
-#include <memory>
-#include <utility>
 #include <vector>
 
 #include "shell/browser/ui/drag_util.h"
@@ -40,7 +38,6 @@ void NativeBrowserViewViews::UpdateDraggableRegions(
   auto snapped_regions = mojo::Clone(regions);
   for (auto& snapped_region : snapped_regions) {
     snapped_region->bounds.Offset(offset);
-    snapped_region->draggable = true;
   }
 
   draggable_region_ = DraggableRegionsToSkRegion(snapped_regions);
